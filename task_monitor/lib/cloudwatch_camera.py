@@ -91,12 +91,12 @@ class CloudWatchCamera(Camera):
     @staticmethod
     def _add_queue_times(metrics, time_to_start):
         for task_name, stats in time_to_start.items():
-            metrics.add('CeleryQueuedTime', unit='Seconds', dimensions={'task': task_name}, stats=stats.__dict__.copy())
+            metrics.add('CeleryTaskQueuedTime', unit='Seconds', dimensions={'task': task_name}, stats=stats.__dict__.copy())
 
     @staticmethod
     def _add_run_times(metrics, time_to_process):
         for task_name, stats in time_to_process.items():
-            metrics.add('CeleryProcessingTime', unit='Seconds', dimensions={'task': task_name}, stats=stats.__dict__.copy())
+            metrics.add('CeleryTaskProcessingTime', unit='Seconds', dimensions={'task': task_name}, stats=stats.__dict__.copy())
     @staticmethod
     def _add_waiting_tasks(metrics, waiting_tasks):
         metrics.add('CeleryQueueSize', unit='Count', value=waiting_tasks, dimensions={'queue': 'celery'})
