@@ -24,9 +24,9 @@ Monitor your [celery](http://www.celeryproject.org/) application from within [AW
     }
 
     ```
-    (Note: You can set up a `User` with the same policy and provide access details that way)
+    (Note: Alternitavely, you can set up a `User` with the same policy and provide access details that way)
 
-2. Update boto on the machine that this will run (& install celery too!)
+2. Install recent versions of `boto` and `celery`  (via `python-pip`)
 
     ```sh
     sudo apt-get install -y python-pip
