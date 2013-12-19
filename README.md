@@ -18,7 +18,7 @@ Also, statistics on task duration are sent in the metrics:
  * CeleryTaskQueuedTime
  * CeleryTaskProcessingTime
 
-These metrics are sent with all supported stats (No. Events, Sum, Max, Min), allowing you to gain insight into your task processing delays.
+These metrics are sent with all supported stats (No. Events, Sum, Max, Min), allowing you to gain insight into your task processing and match requests and capacity.
 
 Finally, the following metrics are sent as overalls:
 
