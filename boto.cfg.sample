@@ -1,0 +1,3 @@
+[Boto]
+cloudwatch_region_name = my-region
+cloudwatch_region_endpoint = monitoring.my-region.amazonaws.com

@@ -1,0 +1,85 @@
+==Celery Cloudwatch==
+
+Monitor your celery application from within [AWS CloudWatch](http://aws.amazon.com/cloudwatch/)!
+
+
+==Getting Started==
+
+1. Set up an [IAM Role](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) for your instance.
+
+It must include a policy to perform 'PutMetricData', eg:
+```json
+{
+  "Version": "2000-01-01",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:PutMetricData"
+      ],
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
+
+```
+(Note: You can set up a `User` with the same policy and provide access details that way)
+
+2. Update boto on the machine that this will run (& install celery too!)
+
+```sh
+sudo apt-get install -y python-pip
+sudo pip install --upgrade boto
+sudo pip install celery
+```
+
+3. Create your own `boto.cfg`
+
+```
+[Credentials]
+# if not using an IAM Role - provide aws key/secret
+aws_access_key_id = xxx
+aws_secret_access_key = yyy
+
+[Boto]
+cloudwatch_region_name = my-region
+cloudwatch_region_endpoint = monitoring.my-region.amazonaws.com
+
+```
+
+4. Write a launch script, `launch.sh` with configured environment variables (you could include them in the next script instead too)
+```sh
+CELERY_BROKER_URL="amqp://guest@localhost:5672//" \
+TASK_MONITOR_CW_TASK_NAMES=task,names,to,monitor,comma,separated \
+TASK_MONITOR_CW_NAMESPACE=my-custom-aws-namespace \
+BOTO_CONFIG=myboto.cfg \
+bash bin/task_monitor -c lib.CloudWatchCamera --factory=lib.CloudWatchCameraFactory --freq=60
+```
+
+5. Install upstart
+
+Create a file `/etc/init/celery-cloudwatch.conf`
+```
+description "Celery Cloud Watcher"
+author "nathan muir <ndmuir@gmail.com>"
+
+start on runlevel [234]
+stop on runlevel [0156]
+
+chdir /path/to/celery-cloudwatch
+exec /path/to/celery-cloudwatch/launch.sh
+respawn
+```
+
+then
+```sh
+sudo initctl reload-configuration
+sudo service start celery-cloudwatch
+```
+
+
+6. Start Celery your celery workers with `-E` (or `CELERY_SEND_EVENTS=1`) option, and, start celery clients with `CELERY_SEND_TASK_SENT_EVENT=1`
+
+7. All done! head over to the CloudWatch monitoring page to see the results!
