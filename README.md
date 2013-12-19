@@ -1,4 +1,4 @@
-#Celery Cloudwatch
+#Celery CloudWatch
 
 Monitor your [celery](http://www.celeryproject.org/) application from within [AWS CloudWatch](http://aws.amazon.com/cloudwatch/)!
 
