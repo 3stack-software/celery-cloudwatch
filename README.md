@@ -2,6 +2,31 @@
 
 Monitor your [celery](http://www.celeryproject.org/) application from within [AWS CloudWatch](http://aws.amazon.com/cloudwatch/)!
 
+##Metrics
+
+The following events are tallied per task:
+
+    * CeleryTaskEventWaiting
+    * CeleryTaskEventRunning
+    * CeleryTaskEventCompleted
+    * CeleryTaskEventFailed
+
+You can then see how many tasks/day, tasks/week etc are being completed.
+
+Also, statistics on task duration are sent in the metrics:
+
+    * CeleryTaskQueuedTime
+    * CeleryTaskProcessingTime
+
+These metrics are sent with all supported stats (No. Events, Sum, Max, Min), allowing you to gain insight into your task processing delays.
+
+Finally, the following metrics are sent as overalls:
+
+    * CeleryQueueSize
+    * CeleryRunningTasks
+
+
+
 #Getting Started
 
 1. Set up an [IAM Role](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) for your instance.
@@ -77,7 +102,7 @@ Monitor your [celery](http://www.celeryproject.org/) application from within [AW
     then
     ```sh
     sudo initctl reload-configuration
-    sudo service start celery-cloudwatch
+    sudo service celery-cloudwatch start
     ```
 
 
