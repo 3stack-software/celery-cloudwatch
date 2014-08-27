@@ -80,6 +80,7 @@ Finally, the following metrics are sent as overalls:
     CELERY_BROKER_URL="amqp://guest@localhost:5672//" \
     TASK_MONITOR_CW_TASK_NAMES=task,names,to,monitor,comma,separated \
     TASK_MONITOR_CW_NAMESPACE=my-custom-aws-namespace \
+    TASK_MONITOR_CW_QUEUES=comma-separated-queue-names-default-celery \
     BOTO_CONFIG=myboto.cfg \
     bash bin/task_monitor -c lib.CloudWatchCamera --factory=lib.CloudWatchCameraFactory --freq=60
     ```
