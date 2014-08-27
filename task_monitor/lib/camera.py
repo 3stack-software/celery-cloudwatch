@@ -1,13 +1,12 @@
 __author__ = 'nathan.muir'
 
-
 from celery.utils.timer2 import Timer
 from celery.utils.dispatch import Signal
 
 from import_class import import_class
 
-class CameraFactory(object):
 
+class CameraFactory(object):
     def __init__(self, class_name):
         self.frequency = 60.0
         self.c = import_class(class_name)

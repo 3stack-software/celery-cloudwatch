@@ -1,4 +1,3 @@
-
 __author__ = 'nathan.muir'
 
 from task_monitor import TaskMonitor

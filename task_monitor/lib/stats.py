@@ -1,5 +1,6 @@
 __author__ = 'nathan.muir'
 
+
 class Stats(object):
     def __init__(self, samplecount=0, total=0.0, minimum=None, maximum=None):
         self.samplecount = samplecount
@@ -27,11 +28,13 @@ class Stats(object):
 
     def __add__(self, value):
         if isinstance(value, Stats):
-            stats = Stats(self.samplecount + value.samplecount, self.sum + value.sum, self.minimum, self.maximum)
+            stats = Stats(self.samplecount + value.samplecount,
+                          self.sum + value.sum, self.minimum, self.maximum)
             stats._minmax(value.maximum)
             stats._minmax(value.minimum)
         else:
-            stats = Stats(self.samplecount, self.sum, self.minimum, self.maximum)
+            stats = Stats(self.samplecount, self.sum, self.minimum,
+                          self.maximum)
             stats += value
         return stats
 
