@@ -4,6 +4,7 @@ from camera import Camera, CameraFactory
 import boto.ec2.cloudwatch
 import sys, traceback, os
 import json
+import re
 
 class CloudWatchCameraFactory(CameraFactory):
 
@@ -20,6 +21,10 @@ class CloudWatchCameraFactory(CameraFactory):
         if 'TASK_MONITOR_CW_NAMESPACE' in os.environ:
             kwargs['cloud_watch_namespace'] = os.environ['TASK_MONITOR_CW_NAMESPACE'].strip()
 
+        if 'TASK_MONITOR_CW_QUEUES' in os.environ:
+            kwargs['queues'] = [x.strip() for x in os.environ[
+                'TASK_MONITOR_CW_QUEUES'].split(',')]
+
         if 'TASK_MONITOR_CW_DIMS' in os.environ:
             pass
         return self.c(state, **kwargs)
@@ -30,7 +35,7 @@ class CloudWatchCamera(Camera):
     clear_after = True
     _event_names = ('waiting', 'running', 'completed', 'failed')
 
-    def __init__(self, state, aws_connection, freq=1.0, task_names=None, cloud_watch_namespace='celery', base_dimensions=None):
+    def __init__(self, state, aws_connection, freq=1.0, task_names=None, cloud_watch_namespace='celery', base_dimensions=None, queues=None):
         super(CloudWatchCamera, self).__init__(state, freq=freq)
         self.aws_connection = aws_connection
         self.cloud_watch_namespace = cloud_watch_namespace
@@ -39,6 +44,28 @@ class CloudWatchCamera(Camera):
             self.task_names = task_names
         else:
             self.task_names = []
+        if queues:
+            assert type(queues) in [type([]), type(())], \
+                'Queues must be a list'
+            self.queues = {}
+            for queue in queues:
+                if queue == 'celery':
+                    metric_name = ''
+                else:
+                    # converts 'cool - queue!' to 'CustomQueue'
+                    metric_name = ''.join(map(lambda s: s.title(),
+                                              re.split(r'\W+', queue)))
+                    # generate unique metric names for 'similar' queue names
+                    if metric_name in self.queues:
+                        num = 1
+                        mn = '%s%d' % (metric_name, num)
+                        while mn in self.queues:
+                            num += 1
+                            mn = '%s%d' % (metric_name, num)
+                        metric_name = mn
+                self.queues[metric_name] = queue
+        else:
+            self.queues = {'': 'celery'}
         self.metrics = None
 
     def on_shutter(self, state):
@@ -66,8 +93,11 @@ class CloudWatchCamera(Camera):
         self._add_queue_times(metrics, state.time_to_start)
         self._add_run_times(metrics, state.time_to_process)
         self._add_task_events(metrics, state.totals)
-        self._add_waiting_tasks(metrics, len(state.waiting_tasks))
-        self._add_running_tasks(metrics, len(state.running_tasks))
+        for metric_key, queue in self.queues.items():
+            self._add_waiting_tasks(metrics, len(state.waiting_tasks),
+                                    metric_key=metric_key, queue=queue)
+            self._add_running_tasks(metrics, len(state.running_tasks),
+                                    metric_key=metric_key, queue=queue)
         return metrics
 
     def _add_task_events(self, metrics, event_totals):
@@ -98,12 +128,12 @@ class CloudWatchCamera(Camera):
         for task_name, stats in time_to_process.items():
             metrics.add('CeleryTaskProcessingTime', unit='Seconds', dimensions={'task': task_name}, stats=stats.__dict__.copy())
     @staticmethod
-    def _add_waiting_tasks(metrics, waiting_tasks):
-        metrics.add('CeleryQueueSize', unit='Count', value=waiting_tasks, dimensions={'queue': 'celery'})
+    def _add_waiting_tasks(metrics, waiting_tasks, metric_key='', queue='celery'):
+        metrics.add('Celery%sQueueSize' % metric_key, unit='Count', value=waiting_tasks, dimensions={'queue': queue})
 
     @staticmethod
-    def _add_running_tasks(metrics, running_tasks):
-        metrics.add('CeleryRunningTasks', unit='Count', value=running_tasks, dimensions={'queue': 'celery'})
+    def _add_running_tasks(metrics, running_tasks, metric_key='', queue='celery'):
+        metrics.add('Celery%sRunningTasks' % metric_key, unit='Count', value=running_tasks, dimensions={'queue': queue})
 
 
 
