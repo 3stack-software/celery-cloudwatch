@@ -1,13 +1,14 @@
 __author__ = 'nathan.muir'
 from celery import Celery
+
 from state import State
 from import_class import import_class
 from camera import CameraFactory
 
-class TaskMonitor(object):
 
+class TaskMonitor(object):
     def __init__(self, options):
-       self.options = options
+        self.options = options
 
     def run(self):
         app = Celery(broker=self.options.broker)

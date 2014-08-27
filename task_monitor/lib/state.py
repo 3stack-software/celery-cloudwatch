@@ -1,13 +1,16 @@
+from __future__ import print_function
+
 __author__ = 'nathan.muir'
 
 from collections import defaultdict
 import threading
+import sys
+import traceback
+
 from stats import Stats
 
-import sys, traceback
 
 class State(object):
-
     def __init__(self):
         self._mutex = threading.Lock()
 
@@ -29,10 +32,10 @@ class State(object):
             try:
                 return fun(*args, **kwargs)
             except:
-                print "Exception in user code:"
-                print '-'*60
+                print("Exception in user code:")
+                print('-' * 60)
                 traceback.print_exc(file=sys.stdout)
-                print '-'*60
+                print('-' * 60)
             finally:
                 if clear_after:
                     self._clear()
@@ -57,9 +60,12 @@ class State(object):
         with self._mutex:
             if event['uuid'] in self.task_types:
                 task_type = self.task_types[event['uuid']]
-                # only track averages for tasks that have a waiting-started timestamp
+                # only track averages for tasks that have a waiting-started
+                # timestamp
                 if event['uuid'] in self.waiting_tasks:
-                    self.time_to_start[task_type] += event['timestamp'] - self.waiting_tasks[event['uuid']]
+                    time = (event['timestamp'] -
+                            self.waiting_tasks[event['uuid']])
+                    self.time_to_start[task_type] += time
                     del self.waiting_tasks[event['uuid']]
 
                 self.running_tasks[event['uuid']] = event['timestamp']
@@ -70,13 +76,15 @@ class State(object):
             if event['uuid'] in self.task_types:
                 task_type = self.task_types[event['uuid']]
                 del self.task_types[event['uuid']]
-                # only track averages for tasks that have a waiting-started timestamp
+                # only track averages for tasks that have a waiting-started
+                # timestamp
                 if event['uuid'] in self.running_tasks:
-                    self.time_to_process[task_type] += event['timestamp'] - self.running_tasks[event['uuid']]
+                    time = (event['timestamp'] -
+                            self.running_tasks[event['uuid']])
+                    self.time_to_process[task_type] += time
                     del self.running_tasks[event['uuid']]
 
                 self.totals[task_type]['completed'] += 1
-
 
 
     def task_failed(self, event):
