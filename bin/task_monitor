@@ -1,8 +1,0 @@
-#!/bin/bash
-
-CURR_DIR="$(pwd)"
-BINPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-_LIB_PATH="$(cd "${BINPATH}/../task_monitor" && pwd)"
-
-PYTHONPATH="$PYTHONPATH;$_LIB_PATH;$CURR_DIR"
-python "$_LIB_PATH/main.py" $@

@@ -20,7 +20,7 @@ Also, statistics on task duration are sent in the metrics:
 
 These metrics are sent with all supported stats (No. Events, Sum, Max, Min), allowing you to gain insight into your task processing and match requests and capacity.
 
-Finally, the following metrics are sent as overalls:
+Finally, the following metrics are sent as overalls (for each queue):
 
  * CeleryQueueSize
  * CeleryRunningTasks
@@ -51,17 +51,24 @@ Finally, the following metrics are sent as overalls:
     ```
     (Note: Alternitavely, you can set up a `User` with the same policy and provide access details that way)
 
-2. Install recent versions of `boto` and `celery`  (via `python-pip`)
+2. Install via `python-pip` (and upgrade pip & boto)
 
     ```sh
     sudo apt-get install -y python-pip
-    sudo pip install --upgrade boto
-    sudo pip install celery
+    sudo pip install --upgrade pip boto
+
+    # Install directly
+    sudo pip install celery-cloudwatch
+
+    # OR, install in a virtualenv
+    sudo apt-get install -y python-virtualenv
+    mkdir /var/python-envs
+    virtualenv /var/python-envs/ccwatch
+    source /var/python-envs/ccwatch/bin/activate
+    pip install celery-cloudwatch
     ```
 
-3. Copy `celery-cloudwatch` to your server
-
-4. Create your own `boto.cfg`
+3. Create your own `boto.cfg` at `/etc/boto.cfg`
 
     ```
     [Credentials]
@@ -74,28 +81,41 @@ Finally, the following metrics are sent as overalls:
     cloudwatch_region_endpoint = monitoring.my-region.amazonaws.com
 
     ```
+4. Create your own config file in `/etc/ccwatch.cfg`
 
-5. Write a launch script, `launch.sh` with configured environment variables (you could include them in the next script instead too)
-    ```sh
-    CELERY_BROKER_URL="amqp://guest@localhost:5672//" \
-    TASK_MONITOR_CW_TASK_NAMES=task,names,to,monitor,comma,separated \
-    TASK_MONITOR_CW_NAMESPACE=my-custom-aws-namespace \
-    BOTO_CONFIG=myboto.cfg \
-    bash bin/task_monitor -c lib.CloudWatchCamera --factory=lib.CloudWatchCameraFactory --freq=60
+    ```
+    [ccwatch]
+    broker = amqp://guest@localhost:5672//
+
+    [cloudwatch-camera]
+    ; the "Custom Metrics" category to use
+    namespace = celery
+    ; provide a list of tasks
+    tasks = myapp.mytasks.taskname
+            myapp.mytasks.anothertask
+            myapp.mytasks.thirdtask
+    queues = celery
+
+    [cloudwatch-camera-dimensions]
+    ; additional dimensions to send through with each metric
+    ; eg.
+    ; app = myapp
     ```
 
-6. Install upstart
+5. Install upstart
 
     Create a file `/etc/init/celery-cloudwatch.conf`
     ```
-    description "Celery Cloud Watcher"
+    description "Celery CloudWatch"
     author "nathan muir <ndmuir@gmail.com>"
+
+    setuid nobody
+    setgid nogroup
 
     start on runlevel [234]
     stop on runlevel [0156]
 
-    chdir /path/to/celery-cloudwatch
-    exec /path/to/celery-cloudwatch/launch.sh
+    exec /var/python-envs/ccwatch/bin/ccwatch
     respawn
     ```
 
@@ -106,6 +126,6 @@ Finally, the following metrics are sent as overalls:
     ```
 
 
-7. Start Celery your celery workers with the `-E` (or `CELERY_SEND_EVENTS=1`) option, and, start celery clients with `CELERY_SEND_TASK_SENT_EVENT=1`
+6. Start Celery your celery workers with the `-E` (or `CELERY_SEND_EVENTS=1`) option, and, start celery clients with `CELERY_SEND_TASK_SENT_EVENT=1`
 
-8. All done! head over to your CloudWatch monitoring page to see the results!
+7. All done! head over to your CloudWatch monitoring page to see the results!

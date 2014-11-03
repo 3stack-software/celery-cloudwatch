@@ -9,11 +9,10 @@ from import_class import import_class
 class CameraFactory(object):
 
     def __init__(self, class_name):
-        self.frequency = 60.0
         self.c = import_class(class_name)
 
-    def camera(self, state):
-        return self.c(state, freq=self.frequency)
+    def camera(self, state, config):
+        return self.c(state, config)
 
 
 class Camera(object):
@@ -21,10 +20,10 @@ class Camera(object):
     _tref = None
     shutter_signal = Signal(providing_args=('state', ))
 
-    def __init__(self, state, freq=1.0):
+    def __init__(self, state, config):
         self.state = state
         self.timer = Timer()
-        self.freq = freq
+        self.freq = config.getfloat('camera', 'frequency')
 
     def install(self):
         self._tref = self.timer.call_repeatedly(self.freq, self.capture)

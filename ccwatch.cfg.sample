@@ -1,0 +1,27 @@
+[ccwatch]
+broker
+camera = celery_cloudwatch.CloudWatchCamera
+; if verbose - will print each task-sent, task-started, task-succeeded, and task-failed event
+verbose = False
+
+[camera]
+frequency = 60.0
+; if verbose - will print out data
+verbose = False
+
+[cloudwatch-camera]
+; uncomment the following line, to "dry" test without connecting to aws
+; noaws
+namespace = celery
+; provide a list of tasks
+tasks = myapp.mytasks.taskname
+        myapp.mytasks.anothertask
+        myapp.mytasks.thirdtask
+queues = celery
+         another_queue
+
+
+[cloudwatch-camera-dimensions]
+; additional dimensions to send through with each metric
+; eg.
+; app = myapp
