@@ -1,10 +1,8 @@
-__author__ = 'nathan.muir'
-
-
 from celery.utils.timer2 import Timer
 from celery.utils.dispatch import Signal
 
 from import_class import import_class
+
 
 class CameraFactory(object):
 
@@ -23,7 +21,7 @@ class Camera(object):
     def __init__(self, state, config):
         self.state = state
         self.timer = Timer()
-        self.freq = config.getfloat('camera', 'frequency')
+        self.freq = config['camera']['frequency']
 
     def install(self):
         self._tref = self.timer.call_repeatedly(self.freq, self.capture)

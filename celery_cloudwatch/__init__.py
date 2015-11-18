@@ -1,6 +1,3 @@
-
-__author__ = 'nathan.muir'
-
 from task_monitor import TaskMonitor
 from state import State
 from stats import Stats

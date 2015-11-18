@@ -1,18 +1,28 @@
-__author__ = 'nathan.muir'
-
-from collections import defaultdict
+import sys
+import traceback
 import threading
+import logging
+from collections import defaultdict, namedtuple
+
 from stats import Stats
-import sys, traceback
+
+logger = logging.getLogger(__name__)
+
+Task = namedtuple('Task', ['timestamp', 'name'])
 
 
 class State(object):
+
+    # http://docs.celeryproject.org/en/latest/userguide/monitoring.html
 
     def __init__(self):
         self._mutex = threading.Lock()
 
         # track the number of events in the current window
-        self.totals = defaultdict(lambda: defaultdict(int))
+        self.task_event_waiting = defaultdict(int)
+        self.task_event_running = defaultdict(int)
+        self.task_event_completed = defaultdict(int)
+        self.task_event_failed = defaultdict(int)
 
         self.time_to_start = defaultdict(Stats)
 
@@ -21,7 +31,6 @@ class State(object):
         # keep track of sent tasks and their timestamps
         self.waiting_tasks = {}
         self.running_tasks = {}
-        self.task_types = {}
 
     def freeze_while(self, fun, *args, **kwargs):
         clear_after = kwargs.pop('clear_after', True)
@@ -39,78 +48,68 @@ class State(object):
 
     def _clear(self):
         # reset all the counters
-        self.totals = defaultdict(lambda: defaultdict(int))
+        self.task_event_waiting = defaultdict(int)
+        self.task_event_running = defaultdict(int)
+        self.task_event_completed = defaultdict(int)
+        self.task_event_failed = defaultdict(int)
 
         self.time_to_start = defaultdict(Stats)
 
         self.time_to_process = defaultdict(Stats)
 
-    def num_waiting_tasks(self, queue='celery'):
-        count = 0
+    def num_waiting_by_task(self):
+        totals = {}
         for task in self.waiting_tasks.values():
-            if task['q'] == queue:
-                count += 1
-        return count
+            totals.setdefault(task.name, 0)
+            totals[task.name] += 1
+        return totals
 
-    def num_running_tasks(self, queue='celery'):
-        count = 0
-        for task in self.running_tasks.values():
-            if task['q'] == queue:
-                count += 1
-        return count
+    def num_running_by_task(self):
+        totals = {}
+        for task in self.waiting_tasks.values():
+            totals.setdefault(task.name, 0)
+            totals[task.name] += 1
+        return totals
 
     def task_sent(self, event):
         with self._mutex:
-            self.waiting_tasks[event['uuid']] = {
-                'ts': event['timestamp'],
-                'q': event['queue']
-            }
-            # increment totals for this task type
-            self.totals[event['name']]['waiting'] += 1
-            self.task_types[event['uuid']] = event['name']
+            uuid = event['uuid']
+            if uuid not in self.running_tasks:
+                task = Task(event['timestamp'], event['name'])
+                self.waiting_tasks[uuid] = task
+                self.task_event_waiting[task.name] += 1
+            else:
+                # If the task is already in self.tasks, it means
+                #  that it was `task_started` before the `task_sent` event was received.
+                logger.info('Got late task-sent for %r', event)
 
     def task_started(self, event):
         with self._mutex:
-            if event['uuid'] in self.task_types:
-                task_type = self.task_types[event['uuid']]
-                queue = 'celery'
-                # only track averages for tasks that have a waiting-started timestamp
-                #  can only determine the queue from the 'task-sent' event
-                if event['uuid'] in self.waiting_tasks:
-                    waiting_task = self.waiting_tasks[event['uuid']]
-                    queue = waiting_task['q']
-                    self.time_to_start[task_type] += event['timestamp'] - waiting_task['ts']
-                    del self.waiting_tasks[event['uuid']]
-
-                self.running_tasks[event['uuid']] = {
-                    'ts': event['timestamp'],
-                    'q': queue
-                }
-                self.totals[task_type]['running'] += 1
+            uuid = event['uuid']
+            task = self.waiting_tasks.pop(uuid, None)
+            if task is None:
+                logger.warn('Got early task-started for %r', event)
+                self.running_tasks[uuid] = Task(event['timestamp'], 'unknown')
+            else:
+                self.task_event_running[task.name] += 1
+                self.running_tasks[uuid] = Task(event['timestamp'], task.name)
+                self.time_to_start[task.name] += event['timestamp'] - task.timestamp
 
     def task_succeeded(self, event):
         with self._mutex:
-            if event['uuid'] in self.task_types:
-                task_type = self.task_types[event['uuid']]
-                del self.task_types[event['uuid']]
-                if event['uuid'] in self.waiting_tasks:
-                    del self.waiting_tasks[event['uuid']]
-                # only track averages for tasks that have a waiting-started timestamp
-                if event['uuid'] in self.running_tasks:
-                    self.time_to_process[task_type] += event['timestamp'] - self.running_tasks[event['uuid']]['ts']
-                    del self.running_tasks[event['uuid']]
-
-                self.totals[task_type]['completed'] += 1
-
+            uuid = event['uuid']
+            task = self.running_tasks.pop(uuid, None)
+            if task is None:
+                logger.warn('Got task-succeeded for unknown %r', event)
+                return
+            self.task_event_completed[task.name] += 1
+            self.time_to_process[task.name] += event['timestamp'] - task.timestamp
 
     def task_failed(self, event):
         with self._mutex:
-            if event['uuid'] in self.task_types:
-                task_type = self.task_types[event['uuid']]
-                del self.task_types[event['uuid']]
-                if event['uuid'] in self.waiting_tasks:
-                    del self.waiting_tasks[event['uuid']]
-                if event['uuid'] in self.running_tasks:
-                    del self.running_tasks[event['uuid']]
-
-                self.totals[task_type]['failed'] += 1
+            uuid = event['uuid']
+            task = self.running_tasks.pop(uuid, None)
+            if task is None:
+                logger.warn('Got task-failed for unknown %r', event)
+                return
+            self.task_event_failed[task.name] += 1

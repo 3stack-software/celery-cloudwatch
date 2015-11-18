@@ -1,12 +1,15 @@
-__author__ = 'nathan.muir'
 from celery import Celery
 from state import State
 from camera import CameraFactory
 
 from pprint import PrettyPrinter
 pp = PrettyPrinter()
+
+
 def noop(x):
     pass
+
+
 class TaskMonitor(object):
 
     def __init__(self, broker=None, camera='celery_cloudwatch.PrintCamera',
@@ -22,7 +25,6 @@ class TaskMonitor(object):
 
         factory = CameraFactory(self.camera)
         camera = factory.camera(state, self.config)
-
 
         with app.connection() as connection:
             camera.install()

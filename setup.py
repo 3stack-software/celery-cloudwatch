@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 __author__ = 'nathan.muir'
 
-
-import os
 from setuptools import setup
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
+def read_markdown(filename):
+    try:
+        import pandoc
+        doc = pandoc.Document()
+        doc.markdown = open(filename).read()
+        return doc.rst
+    except ImportError:
+        return ''
 
 setup(
     name='celery-cloudwatch',
-    version='1.0.0a',
+    version='1.1.0a',
 
     author='Nathan Muir',
     author_email='ndmuir@gmail.com',
@@ -20,15 +23,19 @@ setup(
 
     license='MIT',
     description='A monitor for celery queues that reports to AWS CloudWatch',
-    long_description=read('README.md'),
+    long_description=read_markdown('README.md'),
     keywords='celery cloudwatch monitor stats',
 
 
     packages=['celery_cloudwatch'],
     include_package_data=True,
     install_requires=[
-        'celery', 'boto'
+        'celery', 'boto', 'pyyaml', 'voluptous', 'six'
     ],
+
+    extras_require = {
+        'documentation': ['pyandoc']
+    },
 
     entry_points={
         'console_scripts': [

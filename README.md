@@ -13,18 +13,17 @@ The following events are tallied per task:
 
 You can then see how many tasks/day, tasks/week etc are being completed.
 
+Also, we record the total waiting/running per task:
+
+ * CeleryTaskWaiting
+ * CeleryTaskRunning
+
 Also, statistics on task duration are sent in the metrics:
 
  * CeleryTaskQueuedTime
  * CeleryTaskProcessingTime
 
 These metrics are sent with all supported stats (No. Events, Sum, Max, Min), allowing you to gain insight into your task processing and match requests and capacity.
-
-Finally, the following metrics are sent as overalls (for each queue):
-
- * CeleryQueueSize
- * CeleryRunningTasks
-
 
 
 #Getting Started
@@ -49,7 +48,7 @@ Finally, the following metrics are sent as overalls (for each queue):
     }
 
     ```
-    (Note: Alternitavely, you can set up a `User` with the same policy and provide access details that way)
+    (Note: Alternatively, you can set up a `User` with the same policy and provide access details that way)
 
 2. Install via `python-pip` (and upgrade pip & boto)
 
@@ -94,7 +93,6 @@ Finally, the following metrics are sent as overalls (for each queue):
     tasks = myapp.mytasks.taskname
             myapp.mytasks.anothertask
             myapp.mytasks.thirdtask
-    queues = celery
 
     [cloudwatch-camera-dimensions]
     ; additional dimensions to send through with each metric

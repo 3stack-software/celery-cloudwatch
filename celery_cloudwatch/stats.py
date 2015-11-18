@@ -1,4 +1,3 @@
-__author__ = 'nathan.muir'
 
 class Stats(object):
     def __init__(self, samplecount=0, total=0.0, minimum=None, maximum=None):
@@ -39,4 +38,3 @@ class Stats(object):
         if self.samplecount == 0:
             return None
         return self.sum / self.samplecount
-

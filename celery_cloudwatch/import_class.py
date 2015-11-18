@@ -1,4 +1,3 @@
-__author__ = 'nathan.muir'
 from importlib import import_module
 
 

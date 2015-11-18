@@ -1,0 +1,22 @@
+ccwatch:
+  broker: null
+  camera: celery_cloudwatch.CloudWatchCamera
+  verbose: no
+camera:
+  frequency: 60.0
+  verbose: no
+cloudwatch-camera:
+  dryrun: no
+  namespace: celery
+  tasks:
+    - myapp.mytasks.taskname
+    - myapp.mytasks.anothertask
+    - myapp.mytasks.thirdtask
+    - name: myapp.secondarytasks
+      dimensions:
+        task: myapp.secondarytasks
+        customDim: value
+    - name: myapp.tertiarytasks
+      dimensions:
+        task: myapp.tertiarytasks
+        customDim: value

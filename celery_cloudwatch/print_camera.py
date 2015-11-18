@@ -26,9 +26,17 @@ class PrintCamera(Camera):
 
         print ''
         print 'Event Totals'
-        for method_name, totals in state.totals.items():
-            for total_name, total in totals.items():
-                print "%s[%s]: %d" % (method_name, total_name, total)
+        methods = set(state.task_event_waiting.keys() + state.task_event_running.keys() +
+                      state.task_event_completed.keys() + state.task_event_failed.keys())
+        for method_name in methods:
+            if method_name in state.task_event_waiting:
+                print "%s[%s]: %d" % (method_name, 'waiting', state.task_event_waiting[method_name])
+            if method_name in state.task_event_running:
+                print "%s[%s]: %d" % (method_name, 'running', state.task_event_running[method_name])
+            if method_name in state.task_event_completed:
+                print "%s[%s]: %d" % (method_name, 'completed', state.task_event_completed[method_name])
+            if method_name in state.task_event_failed:
+                print "%s[%s]: %d" % (method_name, 'failed', state.task_event_failed[method_name])
 
         print ''
         print 'Queue Sizes'
