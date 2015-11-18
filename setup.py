@@ -30,7 +30,7 @@ setup(
     packages=['celery_cloudwatch'],
     include_package_data=True,
     install_requires=[
-        'celery', 'boto', 'pyyaml', 'voluptous', 'six'
+        'celery', 'boto', 'pyyaml', 'voluptuous', 'six'
     ],
 
     extras_require = {
