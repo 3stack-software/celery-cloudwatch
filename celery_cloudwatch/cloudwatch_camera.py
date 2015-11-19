@@ -57,25 +57,28 @@ class CloudWatchCamera(Camera):
 
     def _build_metrics(self, state):
         metrics = self._metric_list()
+        num_waiting_by_task, num_running_by_task = state.num_waiting_running_by_task()
         if self.task_mapping:
-            self._add_task_events(metrics,
+            self._add_task_events(
+                metrics,
                 state.task_event_sent,
                 state.task_event_started,
                 state.task_event_succeeded,
                 state.task_event_failed,
-                state.num_waiting_by_task(),
-                state.num_running_by_task(),
+                num_waiting_by_task,
+                num_running_by_task,
                 state.time_to_start,
                 state.time_to_process
             )
         if self.task_groups:
-            self._add_task_groups(metrics,
+            self._add_task_groups(
+                metrics,
                 state.task_event_sent,
                 state.task_event_started,
                 state.task_event_succeeded,
                 state.task_event_failed,
-                state.num_waiting_by_task(),
-                state.num_running_by_task(),
+                num_waiting_by_task,
+                num_running_by_task,
                 state.time_to_start,
                 state.time_to_process
             )
