@@ -80,24 +80,32 @@ These metrics are sent with all supported stats (No. Events, Sum, Max, Min), all
     cloudwatch_region_endpoint = monitoring.my-region.amazonaws.com
 
     ```
-4. Create your own config file in `/etc/ccwatch.cfg`
+4. Create your own config file in `/etc/ccwatch.yaml`
 
     ```
-    [ccwatch]
-    broker = amqp://guest@localhost:5672//
+    ccwatch:
+      broker: null
+      camera: celery_cloudwatch.CloudWatchCamera
+      verbose: no
+    camera:
+      frequency: 60.0
+      verbose: no
+    cloudwatch-camera:
+      dryrun: no
+      namespace: celery
+      tasks:
+        - myapp.mytasks.taskname
+        - myapp.mytasks.anothertask
+        - myapp.mytasks.thirdtask
+        - name: myapp.secondarytasks
+          dimensions:
+            task: myapp.secondarytasks
+            customDim: value
+        - name: myapp.tertiarytasks
+          dimensions:
+            task: myapp.tertiarytasks
+            customDim: value
 
-    [cloudwatch-camera]
-    ; the "Custom Metrics" category to use
-    namespace = celery
-    ; provide a list of tasks
-    tasks = myapp.mytasks.taskname
-            myapp.mytasks.anothertask
-            myapp.mytasks.thirdtask
-
-    [cloudwatch-camera-dimensions]
-    ; additional dimensions to send through with each metric
-    ; eg.
-    ; app = myapp
     ```
 
 5. Install upstart
