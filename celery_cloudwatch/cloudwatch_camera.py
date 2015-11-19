@@ -8,7 +8,7 @@ from stats import Stats
 import boto.ec2.cloudwatch
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('ccwatch')
 
 
 class CloudWatchCamera(Camera):

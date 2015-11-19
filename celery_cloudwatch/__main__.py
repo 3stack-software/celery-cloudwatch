@@ -3,6 +3,8 @@ import os
 import voluptuous as v
 import yaml
 import six
+import logging
+import logging.config
 
 from . import TaskMonitor
 
@@ -48,6 +50,7 @@ def main():
     parser.add_argument('--print', action='store_const', const='celery_cloudwatch.PrintCamera', dest='camera', default=None)
 
     parser.add_argument('-c', '--config', default='/etc/ccwatch.yaml')
+    parser.add_argument('--logging-config', default='/etc/ccwatch.logging.conf')
 
     args = parser.parse_args()
 
@@ -55,6 +58,10 @@ def main():
     if os.path.isfile(args.config):
         with open(args.config, 'r') as fp:
             config = yaml.load(fp)
+
+    if args.logging_config and os.path.isfile(args.logging_config):
+        logging.config.fileConfig(args.logging_config)
+
 
     # voluptuous doesn't validate that `default=` values match the schema
     #  lets just run it through twice, to make sure everything is set.

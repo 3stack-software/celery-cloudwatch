@@ -6,7 +6,7 @@ from collections import defaultdict, namedtuple
 
 from stats import Stats
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('ccwatch')
 
 Task = namedtuple('Task', ['timestamp', 'name'])
 
