@@ -6,22 +6,22 @@ Monitor your [celery](http://www.celeryproject.org/) application from within [AW
 
 The following events are tallied per task:
 
- * CeleryTaskEventWaiting
- * CeleryTaskEventRunning
- * CeleryTaskEventCompleted
- * CeleryTaskEventFailed
+ * CeleryEventSent
+ * CeleryEventStarted
+ * CeleryEventSucceeded
+ * CeleryEventFailed
 
 You can then see how many tasks/day, tasks/week etc are being completed.
 
 Also, we record the total waiting/running per task:
 
- * CeleryTaskWaiting
- * CeleryTaskRunning
+ * CeleryNumWaiting
+ * CeleryNumRunning
 
 Also, statistics on task duration are sent in the metrics:
 
- * CeleryTaskQueuedTime
- * CeleryTaskProcessingTime
+ * CeleryQueuedTime
+ * CeleryProcessingTime
 
 These metrics are sent with all supported stats (No. Events, Sum, Max, Min), allowing you to gain insight into your task processing and match requests and capacity.
 

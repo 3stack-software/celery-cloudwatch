@@ -26,15 +26,15 @@ class PrintCamera(Camera):
 
         print ''
         print 'Event Totals'
-        methods = set(state.task_event_waiting.keys() + state.task_event_running.keys() +
-                      state.task_event_completed.keys() + state.task_event_failed.keys())
+        methods = set(state.task_event_sent.keys() + state.task_event_started.keys() +
+                      state.task_event_succeeded.keys() + state.task_event_failed.keys())
         for method_name in methods:
-            if method_name in state.task_event_waiting:
-                print "%s[%s]: %d" % (method_name, 'waiting', state.task_event_waiting[method_name])
-            if method_name in state.task_event_running:
-                print "%s[%s]: %d" % (method_name, 'running', state.task_event_running[method_name])
-            if method_name in state.task_event_completed:
-                print "%s[%s]: %d" % (method_name, 'completed', state.task_event_completed[method_name])
+            if method_name in state.task_event_sent:
+                print "%s[%s]: %d" % (method_name, 'waiting', state.task_event_sent[method_name])
+            if method_name in state.task_event_started:
+                print "%s[%s]: %d" % (method_name, 'running', state.task_event_started[method_name])
+            if method_name in state.task_event_succeeded:
+                print "%s[%s]: %d" % (method_name, 'completed', state.task_event_succeeded[method_name])
             if method_name in state.task_event_failed:
                 print "%s[%s]: %d" % (method_name, 'failed', state.task_event_failed[method_name])
 

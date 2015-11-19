@@ -19,9 +19,9 @@ class State(object):
         self._mutex = threading.Lock()
 
         # track the number of events in the current window
-        self.task_event_waiting = defaultdict(int)
-        self.task_event_running = defaultdict(int)
-        self.task_event_completed = defaultdict(int)
+        self.task_event_sent = defaultdict(int)
+        self.task_event_started = defaultdict(int)
+        self.task_event_succeeded = defaultdict(int)
         self.task_event_failed = defaultdict(int)
 
         self.time_to_start = defaultdict(Stats)
@@ -48,9 +48,9 @@ class State(object):
 
     def _clear(self):
         # reset all the counters
-        self.task_event_waiting = defaultdict(int)
-        self.task_event_running = defaultdict(int)
-        self.task_event_completed = defaultdict(int)
+        self.task_event_sent = defaultdict(int)
+        self.task_event_started = defaultdict(int)
+        self.task_event_succeeded = defaultdict(int)
         self.task_event_failed = defaultdict(int)
 
         self.time_to_start = defaultdict(Stats)
@@ -77,7 +77,7 @@ class State(object):
             if uuid not in self.running_tasks:
                 task = Task(event['timestamp'], event['name'])
                 self.waiting_tasks[uuid] = task
-                self.task_event_waiting[task.name] += 1
+                self.task_event_sent[task.name] += 1
             else:
                 # If the task is already in self.tasks, it means
                 #  that it was `task_started` before the `task_sent` event was received.
@@ -91,7 +91,7 @@ class State(object):
                 logger.warn('Got early task-started for %r', event)
                 self.running_tasks[uuid] = Task(event['timestamp'], 'unknown')
             else:
-                self.task_event_running[task.name] += 1
+                self.task_event_started[task.name] += 1
                 self.running_tasks[uuid] = Task(event['timestamp'], task.name)
                 self.time_to_start[task.name] += event['timestamp'] - task.timestamp
 
@@ -102,7 +102,7 @@ class State(object):
             if task is None:
                 logger.warn('Got task-succeeded for unknown %r', event)
                 return
-            self.task_event_completed[task.name] += 1
+            self.task_event_succeeded[task.name] += 1
             self.time_to_process[task.name] += event['timestamp'] - task.timestamp
 
     def task_failed(self, event):

@@ -59,9 +59,9 @@ class CloudWatchCamera(Camera):
         metrics = self._metric_list()
         if self.task_mapping:
             self._add_task_events(metrics,
-                state.task_event_waiting,
-                state.task_event_running,
-                state.task_event_completed,
+                state.task_event_sent,
+                state.task_event_started,
+                state.task_event_succeeded,
                 state.task_event_failed,
                 state.num_waiting_by_task(),
                 state.num_running_by_task(),
@@ -70,9 +70,9 @@ class CloudWatchCamera(Camera):
             )
         if self.task_groups:
             self._add_task_groups(metrics,
-                state.task_event_waiting,
-                state.task_event_running,
-                state.task_event_completed,
+                state.task_event_sent,
+                state.task_event_started,
+                state.task_event_succeeded,
                 state.task_event_failed,
                 state.num_waiting_by_task(),
                 state.num_running_by_task(),
@@ -81,23 +81,23 @@ class CloudWatchCamera(Camera):
             )
         return metrics
 
-    def _add_task_events(self, metrics, task_event_waiting, task_event_running, task_event_completed, task_event_failed,
+    def _add_task_events(self, metrics, task_event_sent, task_event_started, task_event_succeeded, task_event_failed,
                          num_waiting_by_task, num_running_by_task, time_to_start, time_to_process):
         for task_name, dimensions in self.task_mapping.iteritems():
-            metrics.add('CeleryTaskEventWaiting', unit='Count', value=task_event_waiting.get(task_name, 0), dimensions=dimensions)
-            metrics.add('CeleryTaskEventRunning', unit='Count', value=task_event_running.get(task_name, 0), dimensions=dimensions)
-            metrics.add('CeleryTaskEventCompleted', unit='Count', value=task_event_completed.get(task_name, 0), dimensions=dimensions)
-            metrics.add('CeleryTaskEventFailed', unit='Count', value=task_event_failed.get(task_name, 0), dimensions=dimensions)
-            metrics.add('CeleryTaskWaiting', unit='Count', value=num_waiting_by_task.get(task_name, 0), dimensions=dimensions)
-            metrics.add('CeleryTaskRunning', unit='Count', value=num_running_by_task.get(task_name, 0), dimensions=dimensions)
+            metrics.add('CeleryEventSent', unit='Count', value=task_event_sent.get(task_name, 0), dimensions=dimensions)
+            metrics.add('CeleryEventStarted', unit='Count', value=task_event_started.get(task_name, 0), dimensions=dimensions)
+            metrics.add('CeleryEventSucceeded', unit='Count', value=task_event_succeeded.get(task_name, 0), dimensions=dimensions)
+            metrics.add('CeleryEventFailed', unit='Count', value=task_event_failed.get(task_name, 0), dimensions=dimensions)
+            metrics.add('CeleryNumWaiting', unit='Count', value=num_waiting_by_task.get(task_name, 0), dimensions=dimensions)
+            metrics.add('CeleryNumRunning', unit='Count', value=num_running_by_task.get(task_name, 0), dimensions=dimensions)
             waiting_time = time_to_start.get(task_name)
             if waiting_time:
-                metrics.add('CeleryTaskQueuedTime', unit='Seconds', dimensions=dimensions, stats=waiting_time.__dict__.copy())
+                metrics.add('CeleryQueuedTime', unit='Seconds', dimensions=dimensions, stats=waiting_time.__dict__.copy())
             running_time = time_to_process.get(task_name)
             if running_time:
-                metrics.add('CeleryTaskProcessingTime', unit='Seconds', dimensions=dimensions, stats=running_time.__dict__.copy())
+                metrics.add('CeleryProcessingTime', unit='Seconds', dimensions=dimensions, stats=running_time.__dict__.copy())
 
-    def _add_task_groups(self, metrics, task_event_waiting, task_event_running, task_event_completed,
+    def _add_task_groups(self, metrics, task_event_sent, task_event_started, task_event_succeeded,
                          task_event_failed, num_waiting_by_task, num_running_by_task, time_to_start, time_to_process):
         for task_group in self.task_groups:
             dimensions = task_group['dimensions']
@@ -110,9 +110,9 @@ class CloudWatchCamera(Camera):
             waiting_time = None
             running_time = None
             for task_name in task_group['tasks']:
-                waiting += task_event_waiting.get(task_name, 0)
-                running += task_event_running.get(task_name, 0)
-                completed += task_event_completed.get(task_name, 0)
+                waiting += task_event_sent.get(task_name, 0)
+                running += task_event_started.get(task_name, 0)
+                completed += task_event_succeeded.get(task_name, 0)
                 failed += task_event_failed.get(task_name, 0)
                 num_waiting += num_waiting_by_task.get(task_name, 0)
                 num_running += num_running_by_task.get(task_name, 0)
@@ -127,9 +127,9 @@ class CloudWatchCamera(Camera):
                         running_time = Stats()
                     running_time += task_run_time
 
-            metrics.add('CeleryEventWaiting', unit='Count', value=waiting, dimensions=dimensions)
-            metrics.add('CeleryEventRunning', unit='Count', value=running, dimensions=dimensions)
-            metrics.add('CeleryEventCompleted', unit='Count', value=completed, dimensions=dimensions)
+            metrics.add('CeleryEventSent', unit='Count', value=waiting, dimensions=dimensions)
+            metrics.add('CeleryEventStarted', unit='Count', value=running, dimensions=dimensions)
+            metrics.add('CeleryEventSucceeded', unit='Count', value=completed, dimensions=dimensions)
             metrics.add('CeleryEventFailed', unit='Count', value=failed, dimensions=dimensions)
             metrics.add('CeleryNumWaiting', unit='Count', value=num_waiting, dimensions=dimensions)
             metrics.add('CeleryNumRunning', unit='Count', value=num_running, dimensions=dimensions)
