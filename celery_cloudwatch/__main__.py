@@ -27,7 +27,15 @@ config_schema = v.Schema({
                     v.Extra: six.binary_type
                 }, extra=True)
             }, extra=False)
-        ])
+        ]),
+        v.Optional('task-groups', default=[]): [
+            v.Schema({
+                'tasks': [six.binary_type],
+                'dimensions': v.Schema({
+                    v.Extra: six.binary_type
+                })
+            })
+        ],
     }, extra=False)
 }, extra=True)
 

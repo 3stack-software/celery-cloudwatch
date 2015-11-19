@@ -20,3 +20,10 @@ cloudwatch-camera:
       dimensions:
         task: myapp.tertiarytasks
         customDim: value
+  task-groups:
+    - tasks:
+        bigapp.task1
+        bigapp.task2
+        bigapp.task3
+      dimensions:
+        app: bigapp
