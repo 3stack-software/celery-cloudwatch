@@ -8,6 +8,9 @@ script:
 - make test
 cache:
   pip: true
+addons:
+  apt_packages:
+    - pandoc
 deploy:
   provider: pypi
   user: nathan-muir
