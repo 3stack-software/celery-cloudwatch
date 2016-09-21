@@ -1,7 +1,7 @@
 
 
-from stats import Stats
-from camera import Camera
+from .stats import Stats
+from .camera import Camera
 
 
 class PrintCamera(Camera):

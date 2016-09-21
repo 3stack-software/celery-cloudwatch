@@ -1,7 +1,7 @@
 from celery.utils.timer2 import Timer
 from celery.utils.dispatch import Signal
 
-from import_class import import_class
+from .import_class import import_class
 
 
 class CameraFactory(object):

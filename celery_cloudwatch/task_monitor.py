@@ -1,9 +1,9 @@
-from celery import Celery
-from state import State
-from camera import CameraFactory
+import pprint
 
-from pprint import PrettyPrinter
-pp = PrettyPrinter()
+from celery import Celery
+
+from .camera import CameraFactory
+from .state import State
 
 
 def noop(x):
@@ -46,6 +46,6 @@ class TaskMonitor(object):
            return fn
         else:
             def proxy_event_fn(event):
-                print '[{}] - {}'.format(event_name, pp.pformat(event))
+                print '[{}] - {}'.format(event_name, pprint.pformat(event))
                 return fn(event)
             return proxy_event_fn

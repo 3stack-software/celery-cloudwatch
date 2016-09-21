@@ -1,12 +1,12 @@
-import sys
-import traceback
 import json
 import logging
+import sys
+import traceback
 
-from camera import Camera
-from stats import Stats
 import boto.ec2.cloudwatch
 
+from .camera import Camera
+from .stats import Stats
 
 logger = logging.getLogger('ccwatch')
 

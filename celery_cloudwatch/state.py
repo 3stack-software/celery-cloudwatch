@@ -1,10 +1,10 @@
 import sys
-import traceback
 import threading
-from operator import itemgetter
+import traceback
 from collections import defaultdict, OrderedDict
+from operator import itemgetter
 
-from stats import Stats
+from .stats import Stats
 
 
 class State(object):

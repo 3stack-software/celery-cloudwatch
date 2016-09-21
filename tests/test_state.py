@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-import unittest2 as unittest
-from state import State
+import unittest
+
+from celery_cloudwatch.state import State
 
 class TestPickleErrors(unittest.TestCase):
 
