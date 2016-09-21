@@ -1,7 +1,32 @@
 #!/usr/bin/env python
-__author__ = 'nathan.muir'
+
+import codecs
+import os
+import sys
 
 from setuptools import setup
+
+needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
+pytest_runner = ['pytest-runner'] if needs_pytest else []
+
+needs_setupext_pip = {'requirements'}.intersection(sys.argv)
+setupext_pip = ['setupext-pip~=1.0.5'] if needs_setupext_pip else []
+
+here = os.path.abspath(os.path.dirname(__file__))
+
+
+def read(*parts):
+    # intentionally *not* adding an encoding option to open, See:
+    #   https://github.com/pypa/virtualenv/issues/201#issuecomment-3145690
+    return codecs.open(os.path.join(here, *parts), 'r').read()
+
+
+def find_version(*file_paths):
+    version = read(*file_paths).strip()
+    if version == '':
+        raise RuntimeError('No version found')
+    return version
+
 
 def read_markdown(filename):
     try:
@@ -14,7 +39,7 @@ def read_markdown(filename):
 
 setup(
     name='celery-cloudwatch',
-    version='1.1.0a',
+    version=find_version("VERSION"),
 
     author='Nathan Muir',
     author_email='ndmuir@gmail.com',
@@ -26,15 +51,17 @@ setup(
     long_description=read_markdown('README.md'),
     keywords='celery cloudwatch monitor stats',
 
-
     packages=['celery_cloudwatch'],
-    include_package_data=True,
+
+    setup_requires=[] + pytest_runner,
     install_requires=[
         'celery', 'boto', 'pyyaml', 'voluptuous', 'six'
     ],
-
-    extras_require = {
-        'documentation': ['pyandoc']
+    tests_require=[
+        'pytest', 'unittest2',
+    ],
+    extras_require={
+        'documentation': ['pyandoc'],
     },
 
     entry_points={
