@@ -132,6 +132,6 @@ These metrics are sent with all supported stats (No. Events, Sum, Max, Min), all
     ```
 
 
-6. Start Celery your celery workers with the `-E` (or `CELERY_SEND_EVENTS=1`) option, and, start celery clients with `CELERY_SEND_TASK_SENT_EVENT=1`
+6. Start Celery your celery workers with the `-E` (or `CELERY_SEND_EVENTS=1` and `CELERY_TRACK_STARTED=1`) options, and, start celery clients with `CELERY_SEND_TASK_SENT_EVENT=1`
 
 7. All done! head over to your CloudWatch monitoring page to see the results!
