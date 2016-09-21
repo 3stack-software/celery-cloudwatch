@@ -28,11 +28,11 @@ def find_version(*file_paths):
     return version
 
 
-def read_markdown(filename):
+def read_markdown(*file_paths):
     try:
-        import pandoc
-        doc = pandoc.Document()
-        doc.markdown = open(filename).read()
+        import pandoc.core
+        doc = pandoc.core.Document()
+        doc.markdown = read(*file_paths)
         return doc.rst
     except ImportError:
         return ''
