@@ -8,3 +8,12 @@ script:
 - make test
 cache:
   pip: true
+deploy:
+  provider: pypi
+  user: nathan-muir
+  password:
+    secure: aPHr2ryWhhDWUnw3YDYB0wfrQ41yBKrKXThacn2JzF77qqGL/gRBnMUbIT2BPDDLVsBIfiUnnEPy0iydo5KC7pQwYOCfdhpNeGwYUIA3c6WEYEqgnyplNa+L2UtKeMvTI9wIaMtV5I47Mg625jfYfnKp5mkaFNN9p8tkTln2G1ETW7atkwBXIO4rI4gqzthraQw46ALW67Fod4Uh4a8u/ca2+U3dp1zlU6p441naHbiYaY8dr/dAbAmwL7gvqtxcWFkWBc6Xfmnd7d4/j9Lf0HKPY2Z7nAPT0X1tSbvORxEIx+85RtXZIJIl5xboCdCaiNmmWHA1wTkFkQASEeNBjvvs0TJAYBzSVezKqW6wYtCkubxt2i3V1EM0zXFIv8iShD1rxapub3rn4GmSOSOaZX+NUUymxUdzBkbA6+do5aCllCTO0hFzQ8eglZOWk8PewI/MK+jyBQNf2FZb2neciSC/LENKqVDIOOC0I/sC3GgqB4h6XGSPS+7UgFIosSWylJMYJ2iGSEywfI9aIsDfJRHaMsA2fHcLPLpq9NQ3BurtrZvXafZrLpCruNir/ABGYXQBfO3aGTdXp40NjbgBq4rGslpLNqNoEUEeWYvZx2aX8CVQ3evMliFSWFsFFmFgXTR08bJONbZmFIvNpDckP7uPu+390HsT7LveXZgC0LM=
+  on:
+    tags: true
+    distributions: sdist bdist_wheel
+    repo: 3stack-software/celery-cloudwatch
