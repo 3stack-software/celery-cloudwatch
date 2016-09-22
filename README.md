@@ -31,6 +31,7 @@ These metrics are sent with all supported stats (No. Events, Sum, Max, Min), all
 1. Set up an [IAM Role](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html) for your instance.
 
     It must include a policy to perform 'PutMetricData', eg:
+
     ```json
     {
       "Version": "2000-01-01",
@@ -48,6 +49,7 @@ These metrics are sent with all supported stats (No. Events, Sum, Max, Min), all
     }
 
     ```
+
     (Note: Alternatively, you can set up a `User` with the same policy and provide access details that way)
 
 2. Install via `python-pip` (and upgrade pip & boto)
@@ -67,7 +69,7 @@ These metrics are sent with all supported stats (No. Events, Sum, Max, Min), all
     pip install celery-cloudwatch
     ```
 
-3. Create your own `boto.cfg` at `/etc/boto.cfg`
+3. Create your own `boto.cfg` at `/etc/boto.cfg`-
 
     ```
     [Credentials]
@@ -80,6 +82,7 @@ These metrics are sent with all supported stats (No. Events, Sum, Max, Min), all
     cloudwatch_region_endpoint = monitoring.my-region.amazonaws.com
 
     ```
+
 4. Create your own config file in `/etc/ccwatch.yaml`
 
     ```
@@ -110,7 +113,8 @@ These metrics are sent with all supported stats (No. Events, Sum, Max, Min), all
 
 5. Install upstart
 
-    Create a file `/etc/init/celery-cloudwatch.conf`
+    Create a file `/etc/init/celery-cloudwatch.conf`-
+
     ```
     description "Celery CloudWatch"
     author "nathan muir <ndmuir@gmail.com>"
@@ -125,7 +129,8 @@ These metrics are sent with all supported stats (No. Events, Sum, Max, Min), all
     respawn
     ```
 
-    then
+    then-
+
     ```sh
     sudo initctl reload-configuration
     sudo service celery-cloudwatch start
