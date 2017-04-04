@@ -38,10 +38,11 @@ class PrintCamera(Camera):
             if method_name in state.task_event_failed:
                 print "%s[%s]: %d" % (method_name, 'failed', state.task_event_failed[method_name])
 
+        num_waiting_by_task, num_running_by_task = state.num_waiting_running_by_task()
         print ''
         print 'Queue Sizes'
-        print 'Waiting Tasks: %d' % len(state.waiting_tasks)
-        print 'Running Tasks: %d' % len(state.running_tasks)
+        print 'Waiting Tasks: %d' % sum(num_waiting_by_task.values())
+        print 'Running Tasks: %d' % sum(num_running_by_task.values())
 
         print ''
         print ''
