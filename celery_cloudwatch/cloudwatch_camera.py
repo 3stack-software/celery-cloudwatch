@@ -34,6 +34,7 @@ class CloudWatchCamera(Camera):
                 logger.warn('Duplicate configuration for task %r', task)
             self.task_mapping[task_name] = dimensions
         self.task_groups = config['cloudwatch-camera']['task-groups']
+        self.combine_all_tasks = config['cloudwatch-camera']['combine-all-tasks']
         self.metrics = None
 
     def on_shutter(self, state):
@@ -82,6 +83,19 @@ class CloudWatchCamera(Camera):
                 state.time_to_start,
                 state.time_to_process
             )
+        if self.combine_all_tasks:
+            self._add_tasks_combined(
+                metrics,
+                state.task_event_sent,
+                state.task_event_started,
+                state.task_event_succeeded,
+                state.task_event_failed,
+                num_waiting_by_task,
+                num_running_by_task,
+                state.time_to_start,
+                state.time_to_process
+            )
+
         return metrics
 
     def _add_task_events(self, metrics, task_event_sent, task_event_started, task_event_succeeded, task_event_failed,
@@ -140,6 +154,32 @@ class CloudWatchCamera(Camera):
                 metrics.add('CeleryWaitingTime', unit='Seconds', dimensions=dimensions, stats=waiting_time.__dict__.copy())
             if running_time:
                 metrics.add('CeleryProcessingTime', unit='Seconds', dimensions=dimensions, stats=running_time.__dict__.copy())
+
+    def _add_tasks_combined(self, metrics, task_event_sent, task_event_started, task_event_succeeded,
+                            task_event_failed, num_waiting_by_task, num_running_by_task, time_to_start, time_to_process):
+        waiting = sum(task_event_sent.values())
+        running = sum(task_event_started.values())
+        completed = sum(task_event_succeeded.values())
+        failed = sum(task_event_failed.values())
+        num_waiting = sum(num_waiting_by_task.values())
+        num_running = sum(num_running_by_task.values())
+        waiting_time = None
+        if time_to_start:
+            waiting_time = sum(time_to_start.values(), Stats())
+        running_time = None
+        if time_to_process:
+            running_time = sum(time_to_process.values(), Stats())
+
+        metrics.add('CeleryEventSent', unit='Count', value=waiting)
+        metrics.add('CeleryEventStarted', unit='Count', value=running)
+        metrics.add('CeleryEventSucceeded', unit='Count', value=completed)
+        metrics.add('CeleryEventFailed', unit='Count', value=failed)
+        metrics.add('CeleryNumWaiting', unit='Count', value=num_waiting)
+        metrics.add('CeleryNumRunning', unit='Count', value=num_running)
+        if waiting_time:
+            metrics.add('CeleryWaitingTime', unit='Seconds', stats=waiting_time.__dict__.copy())
+        if running_time:
+            metrics.add('CeleryProcessingTime', unit='Seconds', stats=running_time.__dict__.copy())
 
 
 def xchunk(arr, size):

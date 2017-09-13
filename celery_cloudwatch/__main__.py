@@ -38,6 +38,7 @@ config_schema = v.Schema({
                 })
             })
         ],
+        v.Optional('combine-all-tasks', default=False): bool,
     }, extra=False)
 }, extra=True)
 
