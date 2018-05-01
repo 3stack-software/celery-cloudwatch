@@ -95,7 +95,7 @@ class CloudWatchCamera(Camera):
             metrics.add('CeleryNumRunning', unit='Count', value=num_running_by_task.get(task_name, 0), dimensions=dimensions)
             waiting_time = time_to_start.get(task_name)
             if waiting_time:
-                metrics.add('CeleryQueuedTime', unit='Seconds', dimensions=dimensions, stats=waiting_time.__dict__.copy())
+                metrics.add('CeleryWaitingTime', unit='Seconds', dimensions=dimensions, stats=waiting_time.__dict__.copy())
             running_time = time_to_process.get(task_name)
             if running_time:
                 metrics.add('CeleryProcessingTime', unit='Seconds', dimensions=dimensions, stats=running_time.__dict__.copy())
