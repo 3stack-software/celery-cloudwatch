@@ -3,7 +3,8 @@ import logging
 import sys
 import traceback
 
-import boto.ec2.cloudwatch
+import boto3
+import six
 
 from .camera import Camera
 from .stats import Stats
@@ -15,12 +16,12 @@ class CloudWatchCamera(Camera):
 
     clear_after = True
 
-    def __init__(self, state, config, aws_connection=None):
+    def __init__(self, state, config, cloudwatch_client=None):
         super(CloudWatchCamera, self).__init__(state, config)
         self.verbose = config['camera']['verbose']
-        if not config['cloudwatch-camera']['dryrun'] and aws_connection is None:
-            aws_connection = boto.ec2.cloudwatch.CloudWatchConnection()
-        self.aws_connection = aws_connection
+        if not config['cloudwatch-camera']['dryrun'] and cloudwatch_client is None:
+            cloudwatch_client = boto3.client('cloudwatch')
+        self.cloudwatch_client = cloudwatch_client
         self.cloud_watch_namespace = config['cloudwatch-camera']['namespace']
         self.task_mapping = {}
         for task in config['cloudwatch-camera']['tasks']:
@@ -53,7 +54,7 @@ class CloudWatchCamera(Camera):
             self.metrics = None
 
     def _metric_list(self):
-        return MetricList(self.cloud_watch_namespace, self.aws_connection, self.verbose)
+        return MetricList(self.cloud_watch_namespace, self.cloudwatch_client, self.verbose)
 
     def _build_metrics(self, state):
         metrics = self._metric_list()
@@ -151,10 +152,10 @@ class MetricList(object):
 
     _metric_chunk_size = 20
 
-    def __init__(self, namespace, aws_connection, verbose=False):
+    def __init__(self, namespace, cloudwatch_client, verbose=False):
         self.metrics = []
         self.namespace = namespace
-        self.aws_connection = aws_connection
+        self.cloudwatch_client = cloudwatch_client
         self.verbose = verbose
 
     def add(self, *args, **kwargs):
@@ -163,25 +164,19 @@ class MetricList(object):
     def append(self, metric):
         self.metrics.append(metric)
 
-    def _serialize(self, metric_chunk):
-        params = {
-            'Namespace': self.namespace
-        }
-        index = 0
-        for metric in metric_chunk:
-            for key, val in metric.serialize().iteritems():
-                params['MetricData.member.%d.%s' % (index + 1, key)] = val
-            index += 1
-        return params
-
     def send(self):
         for metric_chunk in xchunk(self.metrics, self._metric_chunk_size):
-            metrics = self._serialize(metric_chunk)
+            metric_data = [
+                metric.serialize() for metric in metric_chunk
+            ]
             if self.verbose:
                 print 'PutMetricData'
-                print json.dumps(metrics, indent=2, sort_keys=True)
-            if self.aws_connection:
-                self.aws_connection.get_status('PutMetricData', metrics, verb="POST")
+                print json.dumps(metric_data, indent=2, sort_keys=True)
+            if self.cloudwatch_client:
+                self.cloudwatch_client.put_metric_data(
+                    Namespace=self.namespace,
+                    MetricData=metric_data,
+                )
 
 
 class Metric(object):
@@ -201,6 +196,7 @@ class Metric(object):
             self.dimensions[key] = val
 
     def serialize(self):
+        # See http://boto3.readthedocs.io/en/latest/reference/services/cloudwatch.html#CloudWatch.Client.put_metric_data
         metric_data = {
             'MetricName': self.name,
         }
@@ -212,13 +208,19 @@ class Metric(object):
             metric_data['Unit'] = self.unit
 
         if self.dimensions:
-            self._build_dimension_param(self.dimensions, metric_data)
+            metric_data['Dimensions'] = [
+                {
+                    'Name': name, 'Value': value
+                } for name, value in self._walk_dimensions(self.dimensions)
+            ]
 
         if self.stats:
-            metric_data['StatisticValues.Maximum'] = self.stats['maximum']
-            metric_data['StatisticValues.Minimum'] = self.stats['minimum']
-            metric_data['StatisticValues.SampleCount'] = self.stats['samplecount']
-            metric_data['StatisticValues.Sum'] = self.stats['sum']
+            metric_data['StatisticValues'] = {
+                'Maximum': self.stats['maximum'],
+                'Minimum': self.stats['minimum'],
+                'SampleCount': self.stats['samplecount'],
+                'Sum': self.stats['sum'],
+            }
         elif self.value is not None:
             metric_data['Value'] = self.value
         else:
@@ -227,21 +229,13 @@ class Metric(object):
         return metric_data
 
     @staticmethod
-    def _build_dimension_param(dimensions, params):
-        prefix = 'Dimensions.member'
-        i = 0
-        for dim_name in dimensions:
-            dim_value = dimensions[dim_name]
-            if dim_value:
-                if isinstance(dim_value, basestring):
-                    dim_value = [dim_value]
-                for value in dim_value:
-                    params['%s.%d.Name' % (prefix, i+1)] = dim_name
-                    params['%s.%d.Value' % (prefix, i+1)] = value
-                    i += 1
+    def _walk_dimensions(dimensions):
+        for name, values in dimensions.items():
+            if isinstance(values, six.string_types):
+                yield name, values
             else:
-                params['%s.%d.Name' % (prefix, i+1)] = dim_name
-                i += 1
+                for value in values:
+                    yield name, value
 
     def __repr__(self):
         return '<Metric %s>' % self.name

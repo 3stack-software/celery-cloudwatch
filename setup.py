@@ -55,7 +55,7 @@ setup(
 
     setup_requires=[] + pytest_runner,
     install_requires=[
-        'celery', 'boto', 'pyyaml', 'voluptuous', 'six'
+        'celery', 'boto3', 'pyyaml', 'voluptuous', 'six'
     ],
     tests_require=[
         'pytest', 'unittest2',
