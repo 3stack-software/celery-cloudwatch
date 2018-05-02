@@ -27,3 +27,10 @@ cloudwatch-camera:
         bigapp.task3
       dimensions:
         app: bigapp
+        stat: top
+    - patterns:
+        bigapp.*
+        littleapp.*
+      dimensions:
+        app: bigapp
+        stat: all

@@ -1,3 +1,5 @@
+import fnmatch
+import itertools
 import json
 import logging
 import sys
@@ -103,6 +105,9 @@ class CloudWatchCamera(Camera):
 
     def _add_task_groups(self, metrics, task_event_sent, task_event_started, task_event_succeeded,
                          task_event_failed, num_waiting_by_task, num_running_by_task, time_to_start, time_to_process):
+
+        all_task_names = set(itertools.chain(task_event_sent, task_event_started, task_event_succeeded, task_event_failed))
+
         for task_group in self.task_groups:
             dimensions = task_group['dimensions']
             waiting = 0
@@ -113,7 +118,19 @@ class CloudWatchCamera(Camera):
             num_running = 0
             waiting_time = None
             running_time = None
-            for task_name in task_group['tasks']:
+
+            patterns = task_group.get('patterns')
+            if patterns:
+                task_names = []
+                for task_name in all_task_names:
+                    for pattern in patterns:
+                        if fnmatch.fnmatchcase(pattern, task_name):
+                            task_names.append(task_name)
+                            break
+            else:
+                task_names = task_group['tasks']
+
+            for task_name in task_names:
                 waiting += task_event_sent.get(task_name, 0)
                 running += task_event_started.get(task_name, 0)
                 completed += task_event_succeeded.get(task_name, 0)

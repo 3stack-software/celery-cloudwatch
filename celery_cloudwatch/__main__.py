@@ -8,11 +8,12 @@ import logging.config
 
 from . import TaskMonitor
 
+v_str = v.Any(*six.string_types)
 
 config_schema = v.Schema({
     v.Optional('ccwatch', default={}): v.Schema({
-        v.Optional('broker', default=None): v.Any(None, six.binary_type),
-        v.Optional('camera', default="celery_cloudwatch.CloudWatchCamera"): v.Any(str, six.binary_type),
+        v.Optional('broker', default=None): v.Any(None, v_str),
+        v.Optional('camera', default="celery_cloudwatch.CloudWatchCamera"): v_str,
         v.Optional('verbose', default=False): bool
     }, extra=False),
     v.Optional('camera', default={}): v.Schema({
@@ -21,22 +22,30 @@ config_schema = v.Schema({
     }, extra=False),
     v.Optional('cloudwatch-camera', default={}): v.Schema({
         v.Optional('dryrun', default=False): bool,
-        v.Optional('namespace', default='celery'): six.binary_type,
+        v.Optional('namespace', default='celery'): v_str,
         v.Optional('tasks', default=[]): v.Schema([
-            six.binary_type, v.Schema({
-                'name': six.binary_type,
+            v_str, v.Schema({
+                'name': v_str,
                 'dimensions': v.Schema({
-                    v.Extra: six.binary_type
+                    v.Extra: v_str
                 }, extra=True)
             }, extra=False)
         ]),
         v.Optional('task-groups', default=[]): [
-            v.Schema({
-                'tasks': [six.binary_type],
-                'dimensions': v.Schema({
-                    v.Extra: six.binary_type
+            v.Any(
+                v.Schema({
+                    'tasks': [v_str],
+                    'dimensions': v.Schema({
+                        v.Extra: v_str,
+                    }),
+                }),
+                v.Schema({
+                    'patterns': [v_str],
+                    'dimensions': v.Schema({
+                        v.Extra: v_str,
+                    }),
                 })
-            })
+            )
         ],
     }, extra=False)
 }, extra=True)
