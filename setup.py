@@ -9,9 +9,6 @@ from setuptools import setup
 needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
 pytest_runner = ['pytest-runner'] if needs_pytest else []
 
-needs_setupext_pip = {'requirements'}.intersection(sys.argv)
-setupext_pip = ['setupext-pip~=1.0.5'] if needs_setupext_pip else []
-
 here = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -36,6 +33,7 @@ def read_markdown(*file_paths):
         return doc.rst
     except ImportError:
         return ''
+
 
 setup(
     name='celery-cloudwatch',
