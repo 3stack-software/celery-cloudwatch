@@ -32,10 +32,10 @@ class State(object):
             try:
                 return fun(*args, **kwargs)
             except:
-                print "Exception in user code:"
-                print '-'*60
+                print("Exception in user code:")
+                print('-'*60)
                 traceback.print_exc(file=sys.stdout)
-                print '-'*60
+                print('-'*60)
             finally:
                 if clear_after:
                     self._clear()

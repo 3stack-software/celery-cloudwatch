@@ -1,5 +1,6 @@
 import json
 import logging
+import six
 import sys
 import traceback
 
@@ -40,14 +41,14 @@ class CloudWatchCamera(Camera):
         try:
             self.metrics = self._build_metrics(state)
         except RuntimeError as r:
-            print r
+            print(r)
 
     def after_shutter(self):
         try:
             self.metrics.send()
         except:
-            print "Exception in user code:"
-            print '-'*60
+            print("Exception in user code:")
+            print('-'*60)
             traceback.print_exc(file=sys.stdout)
         finally:
             self.metrics = None
@@ -86,7 +87,7 @@ class CloudWatchCamera(Camera):
 
     def _add_task_events(self, metrics, task_event_sent, task_event_started, task_event_succeeded, task_event_failed,
                          num_waiting_by_task, num_running_by_task, time_to_start, time_to_process):
-        for task_name, dimensions in self.task_mapping.iteritems():
+        for task_name, dimensions in six.iteritems(self.task_mapping):
             metrics.add('CeleryEventSent', unit='Count', value=task_event_sent.get(task_name, 0), dimensions=dimensions)
             metrics.add('CeleryEventStarted', unit='Count', value=task_event_started.get(task_name, 0), dimensions=dimensions)
             metrics.add('CeleryEventSucceeded', unit='Count', value=task_event_succeeded.get(task_name, 0), dimensions=dimensions)
@@ -143,7 +144,7 @@ class CloudWatchCamera(Camera):
 
 
 def xchunk(arr, size):
-    for x in xrange(0, len(arr), size):
+    for x in six.moves.range(0, len(arr), size):
         yield arr[x:x+size]
 
 
@@ -169,7 +170,7 @@ class MetricList(object):
         }
         index = 0
         for metric in metric_chunk:
-            for key, val in metric.serialize().iteritems():
+            for key, val in six.iteritems(metric.serialize()):
                 params['MetricData.member.%d.%s' % (index + 1, key)] = val
             index += 1
         return params
@@ -178,8 +179,8 @@ class MetricList(object):
         for metric_chunk in xchunk(self.metrics, self._metric_chunk_size):
             metrics = self._serialize(metric_chunk)
             if self.verbose:
-                print 'PutMetricData'
-                print json.dumps(metrics, indent=2, sort_keys=True)
+                print('PutMetricData')
+                print(json.dumps(metrics, indent=2, sort_keys=True))
             if self.aws_connection:
                 self.aws_connection.get_status('PutMetricData', metrics, verb="POST")
 
@@ -233,7 +234,7 @@ class Metric(object):
         for dim_name in dimensions:
             dim_value = dimensions[dim_name]
             if dim_value:
-                if isinstance(dim_value, basestring):
+                if isinstance(dim_value, six.string_types):
                     dim_value = [dim_value]
                 for value in dim_value:
                     params['%s.%d.Name' % (prefix, i+1)] = dim_name
