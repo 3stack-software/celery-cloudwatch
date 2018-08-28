@@ -2,10 +2,8 @@
 .PHONY:
 
 develop:
-	# Hard to bootstrap these setup-requirements from setup.py unless we
-	#  are happy to use easy_install. Lets pip them-
-	pip install pytest-runner setupext-pip~=1.0.5
-	python setup.py requirements --install-test-requirements --install-extra-requirements documentation
+	pip install pipenv
+	pipenv install --dev --deploy
 	python setup.py develop
 
 test:

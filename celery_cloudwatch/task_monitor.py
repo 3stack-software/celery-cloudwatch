@@ -46,6 +46,6 @@ class TaskMonitor(object):
            return fn
         else:
             def proxy_event_fn(event):
-                print '[{}] - {}'.format(event_name, pprint.pformat(event))
+                print('[{}] - {}'.format(event_name, pprint.pformat(event)))
                 return fn(event)
             return proxy_event_fn

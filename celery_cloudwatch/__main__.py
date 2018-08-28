@@ -2,7 +2,6 @@ import argparse
 import os
 import voluptuous as v
 import yaml
-import six
 import logging
 import logging.config
 
@@ -11,8 +10,8 @@ from . import TaskMonitor
 
 config_schema = v.Schema({
     v.Optional('ccwatch', default={}): v.Schema({
-        v.Optional('broker', default=None): v.Any(None, six.binary_type),
-        v.Optional('camera', default="celery_cloudwatch.CloudWatchCamera"): v.Any(str, six.binary_type),
+        v.Optional('broker', default=None): v.Any(None, str),
+        v.Optional('camera', default="celery_cloudwatch.CloudWatchCamera"): str,
         v.Optional('verbose', default=False): bool
     }, extra=False),
     v.Optional('camera', default={}): v.Schema({
@@ -21,20 +20,20 @@ config_schema = v.Schema({
     }, extra=False),
     v.Optional('cloudwatch-camera', default={}): v.Schema({
         v.Optional('dryrun', default=False): bool,
-        v.Optional('namespace', default='celery'): six.binary_type,
+        v.Optional('namespace', default='celery'): str,
         v.Optional('tasks', default=[]): v.Schema([
-            six.binary_type, v.Schema({
-                'name': six.binary_type,
+            str, v.Schema({
+                'name': str,
                 'dimensions': v.Schema({
-                    v.Extra: six.binary_type
+                    v.Extra: str
                 }, extra=True)
             }, extra=False)
         ]),
         v.Optional('task-groups', default=[]): [
             v.Schema({
-                'tasks': [six.binary_type],
+                'tasks': [str],
                 'dimensions': v.Schema({
-                    v.Extra: six.binary_type
+                    v.Extra: str
                 })
             })
         ],
