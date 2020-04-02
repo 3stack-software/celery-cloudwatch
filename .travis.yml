@@ -1,16 +1,15 @@
 language: python
 python:
-- '2.7'
+- '3.6'
+before_install:
+- pip install -U pip wheel pipenv
 install:
-- make develop
-sudo: false
+- pipenv install --dev
+- pip install -e .
 script:
-- make test
+- pipenv run pytest tests
 cache:
   pip: true
-addons:
-  apt_packages:
-    - pandoc
 deploy:
   provider: pypi
   user: nathan-muir

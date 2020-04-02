@@ -66,7 +66,7 @@ def main():
     config = {}
     if os.path.isfile(args.config):
         with open(args.config, 'r') as fp:
-            config = yaml.load(fp)
+            config = yaml.load(fp, Loader=yaml.SafeLoader)
 
     if args.logging_config and os.path.isfile(args.logging_config):
         logging.config.fileConfig(args.logging_config)

@@ -1,5 +1,5 @@
 # Required to build source distribution
-include LICENSE README.md setup.cfg Makefile VERSION
+include LICENSE README.md
 
 # Extra samples
 include *.sample

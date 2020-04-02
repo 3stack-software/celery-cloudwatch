@@ -1,5 +1,0 @@
-#!/usr/bin/env python
-
-from celery_cloudwatch.__main__ import main
-
-main()

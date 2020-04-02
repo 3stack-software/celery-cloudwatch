@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import unittest
 
 from celery_cloudwatch.state import State

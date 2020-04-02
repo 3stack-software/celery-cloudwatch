@@ -1,8 +1,9 @@
 import sys
 import threading
 import traceback
+from builtins import property as _property, tuple as _tuple
 from collections import defaultdict, OrderedDict
-from operator import itemgetter
+from operator import itemgetter as _itemgetter
 
 from .stats import Stats
 
@@ -32,10 +33,10 @@ class State(object):
             try:
                 return fun(*args, **kwargs)
             except:
-                print "Exception in user code:"
-                print '-'*60
+                print("Exception in user code:")
+                print('-'*60)
                 traceback.print_exc(file=sys.stdout)
-                print '-'*60
+                print('-'*60)
             finally:
                 if clear_after:
                     self._clear()
@@ -162,7 +163,7 @@ class TaskRecord(tuple):
 
     def __new__(_cls, name, sent_at, started_at, succeeded_at, failed_at):
         'Create new instance of TaskRecord(name, sent_at, started_at, succeeded_at, failed_at)'
-        return tuple.__new__(_cls, (name, sent_at, started_at, succeeded_at, failed_at))
+        return _tuple.__new__(_cls, (name, sent_at, started_at, succeeded_at, failed_at))
 
     @classmethod
     def _make(cls, iterable, new=tuple.__new__, len=len):
@@ -172,40 +173,34 @@ class TaskRecord(tuple):
             raise TypeError('Expected 5 arguments, got %d' % len(result))
         return result
 
-    def __repr__(self):
-        'Return a nicely formatted representation string'
-        return 'TaskRecord(name=%r, sent_at=%r, started_at=%r, succeeded_at=%r, failed_at=%r)' % self
-
-    def _asdict(self):
-        'Return a new OrderedDict which maps field names to their values'
-        return OrderedDict(zip(self._fields, self))
-
     def _replace(_self, **kwds):
         'Return a new TaskRecord object replacing specified fields with new values'
         result = _self._make(map(kwds.pop, ('name', 'sent_at', 'started_at', 'succeeded_at', 'failed_at'), _self))
         if kwds:
-            raise ValueError('Got unexpected field names: %r' % kwds.keys())
+            raise ValueError('Got unexpected field names: %r' % list(kwds))
         return result
+
+    def __repr__(self):
+        'Return a nicely formatted representation string'
+        return self.__class__.__name__ + '(name=%r, sent_at=%r, started_at=%r, succeeded_at=%r, failed_at=%r)' % self
+
+    def _asdict(self):
+        'Return a new OrderedDict which maps field names to their values.'
+        return OrderedDict(zip(self._fields, self))
 
     def __getnewargs__(self):
         'Return self as a plain tuple.  Used by copy and pickle.'
         return tuple(self)
 
-    __dict__ = property(_asdict)
+    name = _property(_itemgetter(0), doc='Alias for field number 0')
 
-    def __getstate__(self):
-        'Exclude the OrderedDict from pickling'
-        pass
+    sent_at = _property(_itemgetter(1), doc='Alias for field number 1')
 
-    name = property(itemgetter(0), doc='Alias for field number 0')
+    started_at = _property(_itemgetter(2), doc='Alias for field number 2')
 
-    sent_at = property(itemgetter(1), doc='Alias for field number 1')
+    succeeded_at = _property(_itemgetter(3), doc='Alias for field number 3')
 
-    started_at = property(itemgetter(2), doc='Alias for field number 2')
-
-    succeeded_at = property(itemgetter(3), doc='Alias for field number 3')
-
-    failed_at = property(itemgetter(4), doc='Alias for field number 4')
+    failed_at = _property(_itemgetter(4), doc='Alias for field number 4')
 
     @property
     def started(self):

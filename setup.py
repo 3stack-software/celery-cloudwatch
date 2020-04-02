@@ -1,45 +1,24 @@
-#!/usr/bin/env python
-
 import codecs
-import os
-import sys
+from os.path import dirname, join, abspath
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
-needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
-pytest_runner = ['pytest-runner'] if needs_pytest else []
-
-needs_setupext_pip = {'requirements'}.intersection(sys.argv)
-setupext_pip = ['setupext-pip~=1.0.5'] if needs_setupext_pip else []
-
-here = os.path.abspath(os.path.dirname(__file__))
+here = abspath(dirname(__file__))
 
 
 def read(*parts):
-    # intentionally *not* adding an encoding option to open, See:
-    #   https://github.com/pypa/virtualenv/issues/201#issuecomment-3145690
-    return codecs.open(os.path.join(here, *parts), 'r').read()
+    return codecs.open(join(here, *parts), 'r', encoding='utf-8').read()
 
 
-def find_version(*file_paths):
-    version = read(*file_paths).strip()
-    if version == '':
-        raise RuntimeError('No version found')
-    return version
+def find_version(package):
+    about = {}
+    exec(read(package, '__version__.py'), about)
+    return about['__version__']
 
-
-def read_markdown(*file_paths):
-    try:
-        import pandoc.core
-        doc = pandoc.core.Document()
-        doc.markdown = read(*file_paths)
-        return doc.rst
-    except ImportError:
-        return ''
 
 setup(
     name='celery-cloudwatch',
-    version=find_version("VERSION"),
+    version=find_version('celery_cloudwatch'),
 
     author='Nathan Muir',
     author_email='ndmuir@gmail.com',
@@ -48,37 +27,35 @@ setup(
 
     license='MIT',
     description='A monitor for celery queues that reports to AWS CloudWatch',
-    long_description=read_markdown('README.md'),
+    long_description=read('README.md'),
+    long_description_content_type='text/markdown',
     keywords='celery cloudwatch monitor stats',
 
-    packages=['celery_cloudwatch'],
+    packages=find_packages(exclude=('tests',)),
+    python_requires='>= 3.6',
 
-    setup_requires=[] + pytest_runner,
+    setup_requires=[],
     install_requires=[
-        'celery', 'boto3', 'pyyaml', 'voluptuous', 'six'
+        'celery',
+        'boto3',
+        'pyyaml',
+        'voluptuous',
+        'six',
     ],
     tests_require=[
-        'pytest', 'unittest2',
+        'pytest',
     ],
-    extras_require={
-        'documentation': ['pyandoc'],
-    },
-
     entry_points={
         'console_scripts': [
             'ccwatch = celery_cloudwatch.__main__:main'
         ]
     },
-
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
-        'Natural Language :: English',
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
-        'Topic :: Software Development :: Libraries :: Python Modules'
-    ]
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: Apache Software License',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+    ],
 )

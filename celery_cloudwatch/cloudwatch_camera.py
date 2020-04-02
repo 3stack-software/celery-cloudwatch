@@ -43,14 +43,14 @@ class CloudWatchCamera(Camera):
         try:
             self.metrics = self._build_metrics(state)
         except RuntimeError as r:
-            print r
+            print(r)
 
     def after_shutter(self):
         try:
             self.metrics.send()
         except:
-            print "Exception in user code:"
-            print '-'*60
+            print("Exception in user code:")
+            print('-'*60)
             traceback.print_exc(file=sys.stdout)
         finally:
             self.metrics = None
@@ -89,7 +89,7 @@ class CloudWatchCamera(Camera):
 
     def _add_task_events(self, metrics, task_event_sent, task_event_started, task_event_succeeded, task_event_failed,
                          num_waiting_by_task, num_running_by_task, time_to_start, time_to_process):
-        for task_name, dimensions in self.task_mapping.iteritems():
+        for task_name, dimensions in self.task_mapping.items():
             metrics.add('CeleryEventSent', unit='Count', value=task_event_sent.get(task_name, 0), dimensions=dimensions)
             metrics.add('CeleryEventStarted', unit='Count', value=task_event_started.get(task_name, 0), dimensions=dimensions)
             metrics.add('CeleryEventSucceeded', unit='Count', value=task_event_succeeded.get(task_name, 0), dimensions=dimensions)
@@ -161,7 +161,7 @@ class CloudWatchCamera(Camera):
 
 
 def xchunk(arr, size):
-    for x in xrange(0, len(arr), size):
+    for x in range(0, len(arr), size):
         yield arr[x:x+size]
 
 
@@ -187,8 +187,8 @@ class MetricList(object):
                 metric.serialize() for metric in metric_chunk
             ]
             if self.verbose:
-                print 'PutMetricData'
-                print json.dumps(metric_data, indent=2, sort_keys=True)
+                print('PutMetricData')
+                print(json.dumps(metric_data, indent=2, sort_keys=True))
             if self.cloudwatch_client:
                 self.cloudwatch_client.put_metric_data(
                     Namespace=self.namespace,
