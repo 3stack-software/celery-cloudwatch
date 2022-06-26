@@ -77,7 +77,7 @@ def main():
     config = config_schema(config_schema(config))
     config_ccwatch = config['ccwatch']
     options = {
-        'broker': config_ccwatch.get('broker'),
+        'broker': args.broker if args.broker else config_ccwatch.get('broker') ,
         'camera': config_ccwatch.get('camera'),
         'verbose': config_ccwatch.get('verbose'),
         'config': config
