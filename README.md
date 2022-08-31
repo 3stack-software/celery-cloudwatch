@@ -55,18 +55,13 @@ These metrics are sent with all supported stats (No. Events, Sum, Max, Min), all
 2. Install via `python-pip` (and upgrade pip & boto)
 
     ```sh
-    sudo apt-get install -y python-pip
-    sudo pip install --upgrade pip boto
+    sudo apt-get install -y python3-pip
+    python3 -m pip install --user -U pip
 
-    # Install directly
-    sudo pip install celery-cloudwatch
-
-    # OR, install in a virtualenv
-    sudo apt-get install -y python-virtualenv
-    mkdir /var/python-envs
-    virtualenv /var/python-envs/ccwatch
-    source /var/python-envs/ccwatch/bin/activate
-    pip install celery-cloudwatch
+    mkdir -p /opt/ccwatch
+    virtualenv --python python3 /opt/ccwatch/env
+    /opt/ccwatch/env/bin/pip install celery-cloudwatch
+    sudo chown -R nobody:nogroup /opt/ccwatch
     ```
 
 3. Create your own `boto.cfg` at `/etc/boto.cfg`-
@@ -110,30 +105,67 @@ These metrics are sent with all supported stats (No. Events, Sum, Max, Min), all
             customDim: value
 
     ```
+    
+    And `/etc/ccwatch.logging.conf`
+    
+    ```
+    [loggers]
+    keys=root,ccwatch
 
-5. Install upstart
+    [handlers]
+    keys=consoleHandler
 
-    Create a file `/etc/init/celery-cloudwatch.conf`-
+    [formatters]
+    keys=simpleFormatter
+
+    [logger_root]
+    level=WARN
+    handlers=consoleHandler
+
+    [logger_ccwatch]
+    level=DEBUG
+    handlers=consoleHandler
+    qualname=ccwatch
+    propagate=0
+
+    [handler_consoleHandler]
+    class=StreamHandler
+    level=DEBUG
+    formatter=simpleFormatter
+    args=(sys.stdout,)
+
+    [formatter_simpleFormatter]
+    format=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+    datefmt=
+    ```
+
+
+5. Install systemd configuration
+
+    Create a file `/etc/systemd/system/ccwatch.service`-
 
     ```
-    description "Celery CloudWatch"
-    author "nathan muir <ndmuir@gmail.com>"
-
-    setuid nobody
-    setgid nogroup
-
-    start on runlevel [234]
-    stop on runlevel [0156]
-
-    exec /var/python-envs/ccwatch/bin/ccwatch
-    respawn
+    [Unit]
+    Description="Celery CloudWatch"
+    
+    [Service]
+    Restart=always
+    RestartSec=15
+    User=nobody
+    Group=nobody
+    Environment=AWS_DEFAULT_REGION=my-region
+    ExecStart=/opt/ccwatch/env/bin/ccwatch
+    
+    [Install]
+    WantedBy=multi-user.target
     ```
 
     then-
 
     ```sh
-    sudo initctl reload-configuration
-    sudo service celery-cloudwatch start
+    systemctl daemon-reload
+    systemctl enable ccwatch.service
+    systemctl start ccwatch.service
     ```
 
 
